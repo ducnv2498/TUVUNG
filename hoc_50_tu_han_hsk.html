@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học 50 từ Hán - HSK cơ bản</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+    .container {
+      max-width: 980px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #1f5f5b;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    button {
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #1f5f5b;
+      color: white;
+    }
+    button.secondary { background: #65737e; }
+    button.correct { background: #2e9d59; }
+    button.wrong { background: #d9534f; }
+    button:hover { opacity: 0.9; }
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    .hanzi {
+      font-size: 82px;
+      text-align: center;
+      margin: 20px 0;
+      letter-spacing: 6px;
+    }
+    .pinyin, .meaning {
+      text-align: center;
+      font-size: 24px;
+      margin: 10px 0;
+    }
+    .meaning { color: #1f5f5b; font-weight: bold; }
+    .hidden { display: none; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+    .word {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.06);
+      text-align: center;
+    }
+    .word .h { font-size: 30px; font-weight: bold; }
+    .word .p { color: #555; margin-top: 5px; }
+    .word .m { color: #1f5f5b; margin-top: 5px; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .option {
+      background: #ffffff;
+      color: #222;
+      border: 2px solid #d8dee9;
+      min-height: 58px;
+    }
+    .score {
+      text-align: center;
+      font-size: 18px;
+      margin: 10px;
+      color: #333;
+    }
+    .center { text-align: center; }
+    .input-box {
+      width: 100%;
+      padding: 14px;
+      font-size: 22px;
+      border-radius: 10px;
+      border: 2px solid #d8dee9;
+      text-align: center;
+    }
+    .result {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 15px;
+      min-height: 30px;
+      font-weight: bold;
+    }
+    @media (max-width: 650px) {
+      .hanzi { font-size: 60px; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Học 50 từ chữ Hán cơ bản</h1>
+
+    <div class="tabs">
+      <button onclick="showMode('flash')">Thẻ nhớ</button>
+      <button onclick="showMode('quiz')">Trò chơi chọn đáp án</button>
+      <button onclick="showMode('write')">Luyện nhớ mặt chữ</button>
+      <button onclick="showMode('list')" class="secondary">Danh sách từ</button>
+    </div>
+
+    <div id="flash" class="card">
+      <h2>Thẻ nhớ</h2>
+      <div class="hanzi" id="flashHanzi"></div>
+      <div class="pinyin hidden" id="flashPinyin"></div>
+      <div class="meaning hidden" id="flashMeaning"></div>
+      <div class="center">
+        <button onclick="speakCurrent()">🔊 Nghe</button>
+        <button onclick="toggleAnswer()">Hiện / Ẩn đáp án</button>
+        <button onclick="nextFlash()">Từ tiếp</button>
+      </div>
+    </div>
+
+    <div id="quiz" class="card hidden">
+      <h2>Trò chơi: chọn nghĩa đúng</h2>
+      <div class="score">Điểm: <span id="score">0</span> / <span id="total">0</span></div>
+      <div class="hanzi" id="quizHanzi"></div>
+      <div class="pinyin" id="quizPinyin"></div>
+      <div class="options" id="options"></div>
+      <div class="result" id="quizResult"></div>
+      <div class="center">
+        <button onclick="newQuiz()">Câu tiếp</button>
+      </div>
+    </div>
+
+    <div id="write" class="card hidden">
+      <h2>Luyện nhớ mặt chữ</h2>
+      <p class="center">Nhìn nghĩa + pinyin, sau đó tự gõ chữ Hán.</p>
+      <div class="meaning" id="writeMeaning"></div>
+      <div class="pinyin" id="writePinyin"></div>
+      <input class="input-box" id="writeInput" placeholder="Gõ chữ Hán tại đây..." />
+      <div class="center" style="margin-top: 15px;">
+        <button onclick="checkWrite()">Kiểm tra</button>
+        <button onclick="showWriteAnswer()">Xem đáp án</button>
+        <button onclick="newWrite()">Câu khác</button>
+      </div>
+      <div class="result" id="writeResult"></div>
+    </div>
+
+    <div id="list" class="card hidden">
+      <h2>Danh sách 50 từ</h2>
+      <div class="grid" id="wordList"></div>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      {h:"我", p:"wǒ", m:"tôi"},
+      {h:"你", p:"nǐ", m:"bạn"},
+      {h:"他", p:"tā", m:"anh ấy"},
+      {h:"她", p:"tā", m:"cô ấy"},
+      {h:"是", p:"shì", m:"là"},
+      {h:"不", p:"bù", m:"không"},
+      {h:"有", p:"yǒu", m:"có"},
+      {h:"家", p:"jiā", m:"nhà, gia đình"},
+      {h:"口", p:"kǒu", m:"miệng, lượng từ người trong gia đình"},
+      {h:"人", p:"rén", m:"người"},
+      {h:"女儿", p:"nǚ'ér", m:"con gái"},
+      {h:"妈妈", p:"māma", m:"mẹ"},
+      {h:"爸爸", p:"bàba", m:"bố"},
+      {h:"老师", p:"lǎoshī", m:"giáo viên"},
+      {h:"学生", p:"xuéshēng", m:"học sinh"},
+      {h:"同学", p:"tóngxué", m:"bạn cùng lớp"},
+      {h:"朋友", p:"péngyou", m:"bạn bè"},
+      {h:"名字", p:"míngzi", m:"tên"},
+      {h:"叫", p:"jiào", m:"gọi, tên là"},
+      {h:"什么", p:"shénme", m:"cái gì"},
+      {h:"谁", p:"shéi", m:"ai"},
+      {h:"哪", p:"nǎ", m:"nào"},
+      {h:"国", p:"guó", m:"nước, quốc gia"},
+      {h:"中国", p:"Zhōngguó", m:"Trung Quốc"},
+      {h:"美国", p:"Měiguó", m:"nước Mỹ"},
+      {h:"越南人", p:"Yuènán rén", m:"người Việt Nam"},
+      {h:"汉语", p:"Hànyǔ", m:"tiếng Trung"},
+      {h:"汉字", p:"Hànzì", m:"chữ Hán"},
+      {h:"字", p:"zì", m:"chữ"},
+      {h:"会", p:"huì", m:"biết, có thể"},
+      {h:"说", p:"shuō", m:"nói"},
+      {h:"写", p:"xiě", m:"viết"},
+      {h:"读", p:"dú", m:"đọc"},
+      {h:"怎么", p:"zěnme", m:"như thế nào"},
+      {h:"学习", p:"xuéxí", m:"học tập"},
+      {h:"学校", p:"xuéxiào", m:"trường học"},
+      {h:"书", p:"shū", m:"sách"},
+      {h:"看书", p:"kàn shū", m:"đọc sách"},
+      {h:"去", p:"qù", m:"đi"},
+      {h:"今天", p:"jīntiān", m:"hôm nay"},
+      {h:"明天", p:"míngtiān", m:"ngày mai"},
+      {h:"昨天", p:"zuótiān", m:"hôm qua"},
+      {h:"月", p:"yuè", m:"tháng"},
+      {h:"号", p:"hào", m:"ngày"},
+      {h:"星期", p:"xīngqī", m:"tuần, thứ"},
+      {h:"今年", p:"jīnnián", m:"năm nay"},
+      {h:"岁", p:"suì", m:"tuổi"},
+      {h:"菜", p:"cài", m:"món ăn, rau"},
+      {h:"好吃", p:"hǎochī", m:"ngon"},
+      {h:"做", p:"zuò", m:"làm, nấu"}
+    ];
+
+    let current = words[0];
+    let score = 0;
+    let total = 0;
+
+    function randomWord() {
+      return words[Math.floor(Math.random() * words.length)];
+    }
+
+    function showMode(mode) {
+      ["flash", "quiz", "write", "list"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+      document.getElementById(mode).classList.remove("hidden");
+      if (mode === "flash") nextFlash();
+      if (mode === "quiz") newQuiz();
+      if (mode === "write") newWrite();
+      if (mode === "list") renderList();
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        alert("Trình duyệt chưa hỗ trợ audio.");
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "zh-CN";
+      utter.rate = 0.75;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
+    }
+
+    function speakCurrent() {
+      speak(current.h);
+    }
+
+    function nextFlash() {
+      current = randomWord();
+      document.getElementById("flashHanzi").textContent = current.h;
+      document.getElementById("flashPinyin").textContent = current.p;
+      document.getElementById("flashMeaning").textContent = current.m;
+      document.getElementById("flashPinyin").classList.add("hidden");
+      document.getElementById("flashMeaning").classList.add("hidden");
+    }
+
+    function toggleAnswer() {
+      document.getElementById("flashPinyin").classList.toggle("hidden");
+      document.getElementById("flashMeaning").classList.toggle("hidden");
+    }
+
+    function newQuiz() {
+      current = randomWord();
+      document.getElementById("quizHanzi").textContent = current.h;
+      document.getElementById("quizPinyin").textContent = current.p;
+      document.getElementById("quizResult").textContent = "";
+
+      let choices = [current];
+      while (choices.length < 4) {
+        let w = randomWord();
+        if (!choices.some(x => x.h === w.h)) choices.push(w);
+      }
+      choices.sort(() => Math.random() - 0.5);
+
+      const options = document.getElementById("options");
+      options.innerHTML = "";
+      choices.forEach(w => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = w.m;
+        btn.onclick = () => chooseAnswer(btn, w.h === current.h);
+        options.appendChild(btn);
+      });
+    }
+
+    function chooseAnswer(btn, ok) {
+      total++;
+      if (ok) {
+        score++;
+        btn.classList.add("correct");
+        document.getElementById("quizResult").textContent = "Đúng rồi!";
+      } else {
+        btn.classList.add("wrong");
+        document.getElementById("quizResult").textContent = "Sai. Đáp án đúng: " + current.m;
+      }
+      document.getElementById("score").textContent = score;
+      document.getElementById("total").textContent = total;
+      speak(current.h);
+    }
+
+    function newWrite() {
+      current = randomWord();
+      document.getElementById("writeMeaning").textContent = current.m;
+      document.getElementById("writePinyin").textContent = current.p;
+      document.getElementById("writeInput").value = "";
+      document.getElementById("writeResult").textContent = "";
+    }
+
+    function checkWrite() {
+      const val = document.getElementById("writeInput").value.trim();
+      if (val === current.h) {
+        document.getElementById("writeResult").textContent = "Đúng rồi! " + current.h;
+        speak(current.h);
+      } else {
+        document.getElementById("writeResult").textContent = "Chưa đúng, thử lại nhé.";
+      }
+    }
+
+    function showWriteAnswer() {
+      document.getElementById("writeResult").textContent = current.h + " — " + current.p + " — " + current.m;
+      speak(current.h);
+    }
+
+    function renderList() {
+      const list = document.getElementById("wordList");
+      list.innerHTML = "";
+      words.forEach(w => {
+        const div = document.createElement("div");
+        div.className = "word";
+        div.innerHTML = `<div class="h">${w.h}</div><div class="p">${w.p}</div><div class="m">${w.m}</div>`;
+        div.onclick = () => speak(w.h);
+        list.appendChild(div);
+      });
+    }
+
+    nextFlash();
+  </script>
+</body>
+</html>
